@@ -1,18 +1,11 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Patch,
-  Post,
-} from "@nestjs/common";
-
+import { Body, Controller, Delete, Get, Param, Patch, Post } from "@nestjs/common";
+import { UsersService } from "./users.service";
 @Controller("users")
 export class UsersController {
+  constructor(private readonly usersService: UsersService) {}
   @Get()
   findAll() {
-    return [];
+    return this.usersService.findAll();
   }
 
   @Get("interns")
@@ -22,7 +15,7 @@ export class UsersController {
 
   @Get(":id")
   findOne(@Param("id") id: string) {
-    return { id };
+    return this.usersService.findOne(+id);
   }
 
   @Post()
@@ -37,6 +30,6 @@ export class UsersController {
 
   @Delete(":id")
   delete(@Param("id") id: string) {
-    return { id, message: "user deleted" };
+    return this.usersService.deleteUser(+id);
   }
 }
