@@ -1,125 +1,87 @@
-import { Injectable } from "@nestjs/common";
-
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { CreateUserDto } from "./dto/create-user.dto";
+import { UpdateUserDto } from "./dto/update-user.dto";
 @Injectable()
 export class UsersService {
   private users = [
     {
       id: 1,
-      first_name: "Taddeo",
-      last_name: "Gatrill",
-      email: "tgatrill0@naver.com",
-      gender: "Male",
+      name: "Leanne Graham",
+      email: "Sincere@april.biz",
+      role: "INTERN",
     },
     {
       id: 2,
-      first_name: "Bari",
-      last_name: "Willis",
-      email: "bwillis1@godaddy.com",
-      gender: "Female",
+      name: "Ervin Howell",
+      email: "Shanna@melissa.tv",
+      role: "INTERN",
     },
     {
       id: 3,
-      first_name: "Khalil",
-      last_name: "Sturges",
-      email: "ksturges2@jigsy.com",
-      gender: "Male",
+      name: "Clementine Bauch",
+      email: "Nathan@yesenia.net",
+      role: "ENGINEER",
     },
     {
       id: 4,
-      first_name: "Phip",
-      last_name: "Libby",
-      email: "plibby3@pinterest.com",
-      gender: "Male",
+      name: "Patricia Lebsack",
+      email: "Julianne.OConner@kory.org",
+      role: "ENGINEER",
     },
     {
       id: 5,
-      first_name: "Ronnica",
-      last_name: "Snoday",
-      email: "rsnoday4@example.com",
-      gender: "Female",
-    },
-    {
-      id: 6,
-      first_name: "Chauncey",
-      last_name: "Pelcheur",
-      email: "cpelcheur5@netvibes.com",
-      gender: "Male",
-    },
-    {
-      id: 7,
-      first_name: "Norry",
-      last_name: "Boggas",
-      email: "nboggas6@google.com.br",
-      gender: "Male",
-    },
-    {
-      id: 8,
-      first_name: "Adriano",
-      last_name: "Rubenov",
-      email: "arubenov7@walmart.com",
-      gender: "Male",
-    },
-    {
-      id: 9,
-      first_name: "Erasmus",
-      last_name: "Fidoe",
-      email: "efidoe8@ebay.co.uk",
-      gender: "Bigender",
-    },
-    {
-      id: 10,
-      first_name: "Lexy",
-      last_name: "Cullotey",
-      email: "lcullotey9@harvard.edu",
-      gender: "Female",
+      name: "Chelsey Dietrich",
+      email: "Lucio_Hettinger@annie.ca",
+      role: "ADMIN",
     },
   ];
 
-  findAll(gender?: "Female" | "Male") {
-    if (gender) {
-      return this.users.filter((user) => user?.gender === gender);
+  findAll(role?: "INTERN" | "ENGINEER" | "ADMIN") {
+    if (role) {
+      const roles = this.users.filter((user) => user.role === role);
+      if (roles.length === 0) {
+        throw new NotFoundException("Users Role not found");
+      }
+      return roles;
     }
-
     return this.users;
   }
 
   findOne(id: number) {
     const user = this.users.find((user) => user.id === id);
-
     if (!user) {
-      return { message: "user not found" };
+      throw new NotFoundException("User Not found");
     }
 
     return user;
   }
 
-  create(user: { name: string; email: string; gender: string; first_name: string; last_name: string }) {
-    const userLastId = this.users[this.users.length]["id"] + 1;
-
-    const newUser = { id: userLastId, ...user };
+  create(createUserDto: CreateUserDto) {
+    const usersByHighestId = [...this.users].sort((a, b) => b.id - a.id);
+    const newUser = {
+      id: usersByHighestId[0].id + 1,
+      ...createUserDto,
+    };
     this.users.push(newUser);
     return newUser;
   }
 
-  update(id: number, updateUser: { email?: string }) {
-    const user = this.users.find((user) => user.id === id);
+  update(id: number, updateUserDto: UpdateUserDto) {
+    this.users = this.users.map((user) => {
+      if (user.id === id) {
+        return { ...user, ...updateUserDto };
+      }
+      return user;
+    });
 
-    if (!user) {
-      return { message: "user not found" };
-    }
-
-    user.email = updateUser.email || null;
-    return { message: "user updated" };
+    return this.findOne(id);
   }
 
-  deleteUser(id: number) {
-    const user = this.users.find((user) => user.id === id);
+  delete(id: number) {
+    const removedUser = this.findOne(id);
 
-    if (!user) {
-      return { message: "user not found" };
-    } else {
-      this.users.filter((user) => user.id !== id);
-      return this.users;
-    }
+    this.users = this.users.filter((user) => user.id !== id);
+
+    return removedUser;
   }
 }
